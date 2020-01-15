@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tugas Akhir Multimedia Online</title>
+</head>
+<style type="text/css">
+		body {
+			margin-top: 100px;
+			margin-left: auto;
+			margin-right: auto;
+			position: relative;
+			background : url(bg.png);
+			height: 100vh;
+			background-size: cover;
+			background-repeat: repeat-x;
+			animation: animate 25s linear infinite;
+		}
+
+		@keyframes animate{
+			from{
+			  background-position: 0 0;
+			} to {
+			  background-position: 100% 0;
+			}
+		}
+
+		canvas{
+			margin-top: 100px;
+			margin-left: auto;
+			margin-right: auto;
+			display: block;
+			border:1px solid #000000;
+		}
+		
+		.header{
+		  text-align: center;
+		  margin-top:auto;
+		}
+		.topBar{
+			position: relative;
+			padding: 0;
+			display: block;
+			top: 0;
+			left: 0;
+			right: 0;
+			margin:auto;
+			color: red;
+		}
+		
+		p{
+		color: red;
+		}
+</style>
+<body>
+	    <div id="UI" onmouseover="mouseOverUI()" >
+        <div class="topBar">
+		<p>Masukkan lagu yang Diinginkan :) </p>
+            <audio controls id="audio"></audio>
+            <input id="audioFile" type="file" accept="Audio/*" capture/> 
+        </div>
+    </div>
+	<script type="text/javascript">
+	var audio;
+	audioFile.onchange = function(){ //plays the user's uploaded audio file when it is uploaded
+    audio = document.getElementById("audio");
+    var reader = new FileReader();
+    reader.onload = function(e){
+        audio.src = this.result;
+        audio.controls = true;
+        audio.crossOrigin = "anonymous";
+        audio.play();
+        audioctx.resume();
+    }
+    reader.readAsDataURL(this.files[0]);
+    window.requestAnimationFrame(draw);
+}
+function changeVolume(){
+    currVol = (vol.value/100);
+    audio.volume = currVol;
+}
+    var sprites=[], targets=[];
+	function startGame() {
+	   myApp.start();
+	   for(var i=0; i<=16; i++)
+	   {
+		if(i<=4){
+		  sprites[i]=new sprite('assets/obj/objek_'+i+'.jpg',465,(i-0.9)*115); 
+		  targets[i]=new sprite('assets/tgt/target_'+i+'.jpg',(i-0.9)*113,20);      
+		  dragable(sprites[i],targets[i]);
+	   } else if(i<=8){
+		  sprites[i]=new sprite('assets/obj/objek_'+i+'.jpg',580,(i-4.9)*115); 
+		  targets[i]=new sprite('assets/tgt/target_'+i+'.jpg',(i-4.9)*113,132);  
+		  dragable(sprites[i],targets[i]);
+	   } else if(i<=12){
+		  sprites[i]=new sprite('assets/obj/objek_'+i+'.jpg',695,(i-8.9)*115); 
+		  targets[i]=new sprite('assets/tgt/target_'+i+'.jpg',(i-8.9)*113,244);  
+		  dragable(sprites[i],targets[i]);
+	   } else if(i<=16){
+		  sprites[i]=new sprite('assets/obj/objek_'+i+'.jpg',810,(i-12.9)*115); 
+		  targets[i]=new sprite('assets/tgt/target_'+i+'.jpg',(i-12.9)*113,356);  
+		  dragable(sprites[i],targets[i]);
+	   }
+	   } 
+	}
+	var myApp = {
+		canvas : document.createElement("canvas"),
+		start : function() {
+			this.canvas.width = 1000;
+			this.canvas.height = 470;
+			this.context = this.canvas.getContext("2d");
+			document.body.insertBefore(this.canvas, document.body.childNodes[0]);  
+			this.interval = setInterval(appLoop, 20);
+		},
+		clear : function() {
+			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		}
+	}
+	
+	function sprite(url,x,y)
+	{
+		this.x=x;
+		this.y=y;
+		this.width=100;
+		this.height=100;
+		var ctx=myApp.context;
+		var imgObject= new Image();
+		imgObject.src = url; 
+		ctx.drawImage(imgObject,this.x,this.y);   
+		this.update=function()
+		{
+			ctx.drawImage(imgObject,this.x,this.y);   
+		}
+	   
+	}
+
+	function appLoop()
+	{
+		myApp.clear();    
+		for(var i=1; i<=16;i++)
+		{
+			targets[i].update();
+			//sprites[i].update();
+		}
+		for(var i=1; i<=16;i++)
+		{
+			//targets[i].update();
+			sprites[i].update();
+		}
+	}
+
+	function dragable(sprite,target)
+	{
+		var offsetX, offsetY;
+		document.body.addEventListener('mousedown',function(e)
+		{      
+			offsetX=e.clientX-sprite.x;
+			offsetY=e.clientY-sprite.y;
+			//mendeteksi pointer klik diatas objek lewat fungsi mouseIsOver
+			if(mouseIsOver(e.clientX,e.clientY,sprite))
+			{
+			  //jika klik diatas objek, deteksi pergerakan mouse dan kondisi saat mouse lepas
+			  //panggil fungsi mouseMove saat pointer bergerak
+			  document.body.addEventListener('mousemove',mouseMove);
+			  //panggil fungsi mouseUp saat pointer lepas
+			  document.body.addEventListener('mouseup',mouseUp);
+			}     
+		});  
+		function mouseMove(e)
+		{
+		  //gambar objek baru lewat fungsi draw() dengan posisi x dan y sama dengan posisi x dan y pointer
+		  //menambahkan faktor offset agar posisi drag objek tidak bergeser
+		  sprite.x=e.clientX-offsetX, sprite.y=e.clientY-offsetY;     
+		};
+	
+		function mouseUp(e)
+		{
+		  //hapus event untuk mousemove dan mouseup agar kondisi kembali seperti semula
+		  document.body.removeEventListener('mousemove',mouseMove);
+		  document.body.removeEventListener('mouseup',mouseUp);
+		  calculateDistance();
+		}
+		
+		//fungsi untuk mendeteksi posisi pointer diatas objek
+		function mouseIsOver (mouseX,mouseY,obj)
+		{
+		  if(mouseX>obj.x && mouseX < obj.x+obj.width && mouseY > obj.y && mouseY<obj.y+obj.height)
+		  return true;
+		  else return false;
+		}
+		
+		//menghitung jarak antara sprite dengan target
+		function calculateDistance()
+		{
+			var dist=Math.sqrt(((sprite.x-target.x)*(sprite.x-target.x))+((sprite.y-target.y)*(sprite.y-target.y)));       
+			if(dist<30){
+			  sprite.x=target.x;
+			  sprite.y=target.y;
+			}
+		}
+	};
+startGame();
+</script>
+</body>
+</html>
